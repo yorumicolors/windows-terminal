@@ -1,0 +1,20 @@
+{
+  "name": "Yorumi Shade",
+  "tab": {
+    "background": "#0F1015FF",
+    "iconStyle": "default",
+    "showCloseButton": "always",
+    "unfocusedBackground": "#1D202BFF"
+  },
+  "tabRow": {
+    "background": "#15171DFF",
+    "unfocusedBackground": "#878996FF"
+  },
+  "window": {
+    "applicationTheme": "dark",
+    "experimental.rainbowFrame": false,
+    "frame": null,
+    "unfocusedFrame": null,
+    "useMica": false
+  }
+}

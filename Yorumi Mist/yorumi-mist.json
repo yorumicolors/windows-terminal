@@ -1,0 +1,23 @@
+{
+  "background": "#BDBFCB",
+  "black": "#060914",
+  "blue": "#0D2C4E",
+  "brightBlack": "#060914",
+  "brightBlue": "#42608A",
+  "brightCyan": "#478584",
+  "brightGreen": "#697F4D",
+  "brightPurple": "#614686",
+  "brightRed": "#913B3B",
+  "brightWhite": "#C6DFEC",
+  "brightYellow": "#9D672F",
+  "cursorColor": "#060914",
+  "cyan": "#104351",
+  "foreground": "#060914",
+  "green": "#1C4642",
+  "name": "Yorumi Mist",
+  "purple": "#2A1844",
+  "red": "#4E0E0E",
+  "selectionBackground": "#343742",
+  "white": "#878996",
+  "yellow": "#605006"
+}
