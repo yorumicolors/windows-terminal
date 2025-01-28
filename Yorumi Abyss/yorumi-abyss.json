@@ -1,0 +1,23 @@
+{
+  "background": "#060914",
+  "black": "#060914",
+  "blue": "#597BC0",
+  "brightBlack": "#343742",
+  "brightBlue": "#798DDC",
+  "brightCyan": "#85E0CB",
+  "brightGreen": "#A9D07C",
+  "brightPurple": "#AD8FD6",
+  "brightRed": "#F47571",
+  "brightWhite": "#BDBFCB",
+  "brightYellow": "#E1C084",
+  "cursorColor": "#878996",
+  "cyan": "#67BBB9",
+  "foreground": "#BDBFCB",
+  "green": "#8CB167",
+  "name": "Yorumi Abyss",
+  "purple": "#8666B2",
+  "red": "#C65E53",
+  "selectionBackground": "#343742",
+  "white": "#BDBFCB",
+  "yellow": "#C39D55"
+}

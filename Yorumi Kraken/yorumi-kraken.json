@@ -1,0 +1,23 @@
+{
+  "background": "#0E0D17",
+  "black": "#0E121F",
+  "blue": "#42608A",
+  "brightBlack": "#343742",
+  "brightBlue": "#798DDC",
+  "brightCyan": "#85E0CB",
+  "brightGreen": "#A9D07C",
+  "brightPurple": "#AD8FD6",
+  "brightRed": "#F47571",
+  "brightWhite": "#C0BCE6",
+  "brightYellow": "#E1C084",
+  "cursorColor": "#C0BCE6",
+  "cyan": "#478584",
+  "foreground": "#C0BCE6",
+  "green": "#697F4D",
+  "name": "Yorumi Kraken",
+  "purple": "#614686",
+  "red": "#913B3B",
+  "selectionBackground": "#121520",
+  "white": "#A7A9B5",
+  "yellow": "#9D672F"
+}
