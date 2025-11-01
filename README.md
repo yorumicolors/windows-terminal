@@ -13,7 +13,7 @@ To set up your favourite theme, open the folder of Yorumi `Flavour` and copy the
 
 Launch Windows Terminal, open the Settings panel (Ctrl + ,), and select **Open JSON file** at the bottom left corner (Ctrl + Shift + ,). Then, choose your flavour (abyss, mist, shade, kraken) and copy the contents of the corresponding `yorumi-[flavour].json` into the `"schemes"` section of the JSON file. Similarly, copy the contents of the corresponding `yorumi-[flavour]-theme.json` into the `"themes"` section.
 
-```json
+```jsonc
 {
   "schemes": [
     // yorumi-[Options: abyss | mist | shade | kraken].json
