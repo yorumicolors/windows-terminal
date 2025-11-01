@@ -1,0 +1,16 @@
+{
+  "name": "Yorumi Abyss",
+  "tab": {
+    "background": "#060914FF",
+    "iconStyle": "default",
+    "showCloseButton": "always",
+    "unfocusedBackground": null
+  },
+  "tabRow": {
+    "background": "#02040EFF",
+    "unfocusedBackground": null
+  },
+  "window": {
+    "applicationTheme": "dark"
+  }
+}
