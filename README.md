@@ -7,12 +7,12 @@
 | Yorumi Shade | Yorumi Kraken |
 
 
-### Installation
+## Installation
 
-# Individual theme usage
+### Individual theme usage
 In Windows terminal, open the Settings panel (Ctrl + ,), and select **Open JSON file** at the bottom left corner (Ctrl + Shift + ,). Then, choose your flavour (abyss, mist, shade, kraken) and copy the contents of the corresponding `yorumi-[flavour].json` into the `"schemes"` section of the JSON file. Similarly, copy the contents of the corresponding `yorumi-[flavour]-theme.json` into the `"themes"` section.
 
-# Collective themes
+### Collective themes
 
 To access all of the themes (and colorschemes) to try them all out, copy the single `yorumi.json` file with `schemas` and `themes` sections.
 
@@ -20,11 +20,11 @@ To access all of the themes (and colorschemes) to try them all out, copy the sin
 {
   "schemes": [
     // yorumi-[Options: abyss | mist | shade | kraken].json
-    // or all of the options with copying yorumi.json
+    // or all of the theme options with copying yorumi.json
   ],
   "themes": [
     // yorumi-[Options: abyss | mist | shade | kraken ]-theme.json
-    // or all of the options with copying yorumi.json
+    // or all of the appearance options with copying yorumi.json
   ]
 }
 ```
