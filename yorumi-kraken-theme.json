@@ -1,0 +1,16 @@
+{
+  "name": "Yorumi Kraken",
+  "tab": {
+    "background": "#0E0D17FF",
+    "iconStyle": "default",
+    "showCloseButton": "always",
+    "unfocusedBackground": null
+  },
+  "tabRow": {
+    "background": "#121520FF",
+    "unfocusedBackground": null
+  },
+  "window": {
+    "applicationTheme": "dark"
+  }
+}

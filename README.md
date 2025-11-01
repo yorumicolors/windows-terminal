@@ -1,25 +1,30 @@
 # Yorumi themes for Windows Terminal
 
-| ![image](images/abyss-preview.png) | ![image](images/mist-preview.png) |
+| ![image](images/yorumi-abyss.png) | ![image](images/yorumi-mist.png) |
 | --- | --- |
-| yorumi abyss | yorumi mist |
-| ![image](images/shade-preview.png) | ![image](images/kraken-preview.png) |
-| yorumi shade | yorumi kraken |
+| Yorumi Abyss | Yorumi Mist |
+| ![image](images/yorumi-shade.png) | ![image](images/yorumi-kraken.png) |
+| Yorumi Shade | Yorumi Kraken |
 
 
 ### Installation
 
-To set up your favourite theme, open the folder of Yorumi `Flavour` and copy the contents to the `schemes` section in the `settings.json` file of Windows Terminal. 
+# Individual theme usage
+In Windows terminal, open the Settings panel (Ctrl + ,), and select **Open JSON file** at the bottom left corner (Ctrl + Shift + ,). Then, choose your flavour (abyss, mist, shade, kraken) and copy the contents of the corresponding `yorumi-[flavour].json` into the `"schemes"` section of the JSON file. Similarly, copy the contents of the corresponding `yorumi-[flavour]-theme.json` into the `"themes"` section.
 
-Launch Windows Terminal, open the Settings panel (Ctrl + ,), and select **Open JSON file** at the bottom left corner (Ctrl + Shift + ,). Then, choose your flavour (abyss, mist, shade, kraken) and copy the contents of the corresponding `yorumi-[flavour].json` into the `"schemes"` section of the JSON file. Similarly, copy the contents of the corresponding `yorumi-[flavour]-theme.json` into the `"themes"` section.
+# Collective themes
+
+To access all of the themes (and colorschemes) to try them all out, copy the single `yorumi.json` file with `schemas` and `themes` sections.
 
 ```jsonc
 {
   "schemes": [
     // yorumi-[Options: abyss | mist | shade | kraken].json
+    // or all of the options with copying yorumi.json
   ],
   "themes": [
     // yorumi-[Options: abyss | mist | shade | kraken ]-theme.json
+    // or all of the options with copying yorumi.json
   ]
 }
 ```
