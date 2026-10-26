@@ -1,13 +1,13 @@
 {
   "name": "Yorumi Mist",
   "tab": {
-    "background": "#BDBFCBFF",
+    "background": "#CECFD8FF",
     "iconStyle": "default",
     "showCloseButton": "always",
     "unfocusedBackground": null
   },
   "tabRow": {
-    "background": "#878996FF",
+    "background": "#BDBFCBFF",
     "unfocusedBackground": null
   },
   "window": {
