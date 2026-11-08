@@ -1,23 +1,33 @@
-# Yorumi for windows-terminal
+<h1 align="center" valign="middle">
+  <img height="40px" src="https://github.com/yorumicolors/.github/blob/main/res/seal_sots.gif?raw=true">
+  <sup>yorumi for windows terminal - deep code, quiet sea</sup>
+</h1>
 
-Seven flavours of the [yorumi](https://github.com/yorumicolors) palette for windows-terminal, generated from
-`primitives.json` + `ansi-themes.json`.
+<p align="center">
+  A calming deep sea colorscheme for developers, crafted for <strong>Windows Terminal</strong>.
+</p>
 
-| file | mode |
-|---|---|
-| yorumi-ether.json | dark |
-| yorumi-abyss.json | dark |
-| yorumi-bifrost.json | light |
-| yorumi-kraken.json | dark |
-| yorumi-kabocha.json | dark |
-| yorumi-cosmic.json | dark |
-| yorumi-ryujin.json | dark |
+---
 
-## Install
+Yorumi keeps visual noise low with mellow, low-contrast UI component backgrounds while text and syntax stay sharp: body text measures 9.6-19.5:1 against its background (WCAG AAA), and the lowest-contrast syntax token is 5.6:1 (WCAG AA).
 
-```sh
-./install.sh
-```
+## Theme Showcase
+
+> [!WARNING]  
+> Yorumi Mist and Shade are replaced by `bifrost` and `ryujin` which offer similar color palette. \
+> Other themes such as `cosmic`, `kabocha` and `ether` are not showcased yet. \
+> The showcase images are outdated and will be replaced with new images.
+
+<table>
+  <tr>
+    <td align="center" width="50%"><a href="images/yorumi-abyss.png"><img src="images/yorumi-abyss.png" width="420" alt="yorumi abyss"></a><br><code>Yorumi Abyss</code></td>
+    <td align="center" width="50%"><a href="images/yorumi-kraken.png"><img src="images/yorumi-kraken.png" width="420" alt="yorumi kraken"></a><br><code>Yorumi Kraken</code></td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="images/yorumi-mist.png"><img src="images/yorumi-mist.png" width="420" alt="yorumi mist"></a><br><code>Yorumi Mist</code></td>
+    <td align="center" width="50%"><a href="images/yorumi-shade.png"><img src="images/yorumi-shade.png" width="420" alt="yorumi shade"></a><br><code>Yorumi Shade</code></td>
+  </tr>
+</table>
 
 Activate:
 
@@ -25,8 +35,5 @@ Activate:
 paste the object into the "schemes" array of settings.json, then set "colorScheme"
 ```
 
-## Palette
-
-Every value is a token from the shared palette; nothing is hand-tuned per emulator.
-The contract (background/surface/text/dim slots per mode, selection ink) is
-enforced by `dev/generators/build-terminals.mjs` before any file is written — see `dev/theming/THEMING.md`.
+## Accessibility
+Body text measures 9.6-19.5:1 against the background (WCAG 2.1 AAA); every palette token clears 5.6:1 (AA). No blanket AAA claim is made for syntax colours - sRGB runs out before the saturated hues get lighter.
