@@ -4,30 +4,38 @@
     Install the yorumi colour schemes into Windows Terminal, and optionally theme
     PowerShell and activate a scheme.
 .DESCRIPTION
-    Windows Terminal has no importable theme file, so this script does the merge
-    by hand: it writes the seven scheme objects into the "schemes" array of
-    settings.json, leaving every other byte of the file alone, then offers to
+    Windows Terminal has no importable theme file, so this script owns a marked
+    block in settings.json:
 
-      * set the scheme on every profile (profiles.defaults.colorScheme), and
-      * install the matching yorumi theme for PowerShell itself.
+        "schemes": [
+            // >>> yorumi >>>
+            { "name": "Yorumi Ether", … }
+            // <<< yorumi <<<
+        ]
 
-    Nothing is applied behind your back: both steps prompt, and both are skipped
-    when there is nobody to answer (-NonInteractive, or piped input).
+    The block is rewritten whole, never spliced line by line, and deleting it is
+    the uninstall. Activation is a second block inside "profiles.defaults":
+
+        // >>> yorumi >>>
+        "colorScheme": "Yorumi Ether",
+        // <<< yorumi <<<
+
+    Both are asked for. Nothing is applied when there is nobody to answer
+    (-NonInteractive, or piped input).
 .PARAMETER Flavour
-    The scheme to activate. Default: ether.
+    Scheme to activate and to hand to the PowerShell installer. Default: ether.
 .PARAMETER SettingsPath
     settings.json to edit. Default: the first Windows Terminal settings.json found.
 .PARAMETER Activate
-    Set profiles.defaults.colorScheme without asking.
+    Write the profiles.defaults block without asking.
 .PARAMETER NoActivate
-    Never set profiles.defaults.colorScheme, and never ask.
+    Never write it, and never ask.
 .PARAMETER InstallPowerShell
     Install the yorumi theme for PowerShell without asking.
 .PARAMETER NoInstallPowerShell
-    Never install the PowerShell theme, and never ask.
+    Never install it, and never ask.
 .PARAMETER PowerShellInstaller
-    Path to the PowerShell port's install.ps1. Default: beside this script if it
-    is there, otherwise downloaded from GitHub.
+    Path to the PowerShell port's install.ps1. Default: beside this repo, else downloaded.
 .PARAMETER NonInteractive
     Ask nothing; do only the file work.
 .EXAMPLE
@@ -49,9 +57,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-# Windows PowerShell 5.1 predates TLS 1.2 defaults.
 try {
-    [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 } catch {
     # older .NET without the enum member
 }
@@ -62,35 +69,37 @@ if ($flavours -notcontains $Flavour) {
     throw "unknown flavour '$Flavour'. One of: $($flavours -join ', ')"
 }
 $schemeName = 'Yorumi ' + $Flavour.Substring(0, 1).ToUpper() + $Flavour.Substring(1)
-$isYorumiScheme = [regex]'"name"\s*:\s*"Yorumi '
 
 $interactive = -not $NonInteractive -and -not [Console]::IsInputRedirected
+# two independent regions: the schemes, and the scheme choice
+$begin = '// >>> yorumi >>>'
+$end = '// <<< yorumi <<<'
+$choiceBegin = '// >>> yorumi colorScheme >>>'
+$choiceEnd = '// <<< yorumi colorScheme <<<'
 
 # ── helpers ────────────────────────────────────────────────────────────────
-function Read-Text([string] $path) {
-    return [IO.File]::ReadAllText($path)
-}
+function Read-Text([string] $path) { return [IO.File]::ReadAllText($path) }
 
 function Write-Text([string] $path, [string] $text) {
-    # no BOM: settings.json is JSONC and a BOM upsets other tools that parse it
+    # no BOM: settings.json is JSONC, and a BOM upsets other parsers
     [IO.File]::WriteAllText($path, $text, (New-Object System.Text.UTF8Encoding($false)))
 }
 
-# index just past the "[" of "key": [   (or -1)
+# index just past the "[" of "key": [  (or -1)
 function Find-ArrayOpen([string] $text, [string] $key) {
     $m = [regex]::Match($text, '"' + [regex]::Escape($key) + '"\s*:\s*\[')
     if ($m.Success) { return $m.Index + $m.Length }
     return -1
 }
 
-# index of the "{" of "key": {   (or -1)
+# index just past the "{" of "key": {  (or -1)
 function Find-ObjectOpen([string] $text, [string] $key) {
     $m = [regex]::Match($text, '"' + [regex]::Escape($key) + '"\s*:\s*\{')
     if ($m.Success) { return $m.Index + $m.Length }
     return -1
 }
 
-# top-level { } spans inside the array that starts at $open: @{Start;End} (End exclusive)
+# top-level { } spans inside the array that starts at $open
 function Get-ObjectSpans([string] $text, [int] $open) {
     $spans = @()
     $depth = 0
@@ -120,6 +129,16 @@ function Get-ObjectSpans([string] $text, [int] $open) {
         if ($c -eq ']' -and $depth -eq 0) { break }
     }
     return $spans
+}
+
+# character span of the first region between the given marker lines
+function Find-BlockRegion([string] $text, [string] $startMarker, [string] $endMarker) {
+    $m = [regex]::Match($text, '(?m)^[ \t]*' + [regex]::Escape($startMarker) + '[^\r\n]*$')
+    if (-not $m.Success) { return $null }
+    $rest = $text.Substring($m.Index + $m.Length)
+    $e = [regex]::Match($rest, '(?m)^[ \t]*' + [regex]::Escape($endMarker) + '[^\r\n]*$')
+    if (-not $e.Success) { return @{ Start = $m.Index; End = -1 } }
+    return @{ Start = $m.Index; End = $m.Index + $m.Length + $e.Index + $e.Length }
 }
 
 # JSONC → JSON the .NET parser accepts: drop comments and trailing commas
@@ -185,17 +204,12 @@ if (-not $SettingsPath -and $env:LOCALAPPDATA) {
         if (Test-Path -LiteralPath $candidate) { $SettingsPath = $candidate; break }
     }
 }
-
-if (-not $SettingsPath -or -not (Test-Path -LiteralPath $SettingsPath)) {
-    Write-Host 'Windows Terminal settings.json was not found.'
-    Write-Host 'Open Windows Terminal once, or pass -SettingsPath. The scheme objects are still'
-    Write-Host 'in this folder if you would rather paste them yourself.'
-    $SettingsPath = $null
-} else {
+if ($SettingsPath) {
+    if (-not (Test-Path -LiteralPath $SettingsPath)) { throw "no settings.json at $SettingsPath" }
     $SettingsPath = (Resolve-Path -LiteralPath $SettingsPath).Path
 }
 
-# ── the seven scheme objects ───────────────────────────────────────────────
+# ── the scheme objects ─────────────────────────────────────────────────────
 $objects = @()
 foreach ($f in $flavours) {
     $local = if ($PSScriptRoot) { Join-Path $PSScriptRoot "yorumi-$f.json" }
@@ -208,64 +222,92 @@ foreach ($f in $flavours) {
 }
 Write-Host "schemes ready: $($flavours -join ', ')"
 
-# ── merge into settings.json ───────────────────────────────────────────────
+$schemeBlock = ($objects -join ",`n") + ','
 $activated = $false
+
 if ($SettingsPath) {
     $text = Read-Text $SettingsPath
     $original = $text
-    $open = Find-ArrayOpen $text 'schemes'
-    $missing = @()
+    $indent = '            '
 
-    if ($open -ge 0) {
-        # replace a scheme we shipped before, otherwise queue it for insertion
-        $spans = Get-ObjectSpans $text $open
-        $rewritten = @()
-        for ($i = 0; $i -lt $spans.Count; $i++) {
-            $span = $spans[$i]
-            $block = $text.Substring($span.Start, $span.End - $span.Start)
-            if ($block -match $isYorumiScheme) { $rewritten += $i }
-        }
-        # descending: each splice shifts the text after it
-        [array]::Reverse($rewritten)
-        foreach ($i in $rewritten) {
-            $span = $spans[$i]
-            $block = $text.Substring($span.Start, $span.End - $span.Start)
-            $m = [regex]::Match($block, '"name"\s*:\s*"(Yorumi ([A-Za-z]+))"')
-            $matchFlavour = $m.Groups[2].Value.ToLower()
-            $index = [array]::IndexOf($flavours, $matchFlavour)
-            if ($index -ge 0) {
-                $text = $text.Substring(0, $span.Start) + $objects[$index] + $text.Substring($span.End)
-            }
-        }
-        # recompute after the replacements, then insert whatever is still absent
-        $open = Find-ArrayOpen $text 'schemes'
-        $spans = Get-ObjectSpans $text $open
-        $present = @()
-        foreach ($span in $spans) {
-            $block = $text.Substring($span.Start, $span.End - $span.Start)
-            $m = [regex]::Match($block, '"name"\s*:\s*"Yorumi ([A-Za-z]+)"')
-            if ($m.Success) { $present += $m.Groups[1].Value.ToLower() }
-        }
-        foreach ($f in $flavours) {
-            if ($present -notcontains $f) {
-                $missing += $objects[[array]::IndexOf($flavours, $f)]
-            }
-        }
-        if ($missing.Count -gt 0) {
-            $tail = if ($spans.Count -gt 0) { "," } else { "" }
-            $insert = ($missing -join ",`n") + $tail
-            $text = $text.Substring(0, $open) + "`n" + $insert + $text.Substring($open)
-        }
-    } else {
-        # no "schemes" key at all: add one as the last root member
+    # ── schemes ──────────────────────────────────────────────────────────
+    $schemesOpen = Find-ArrayOpen $text 'schemes'
+    if ($schemesOpen -lt 0) {
+        # no "schemes" key at all: create one as the last root member
         $close = $text.LastIndexOf('}')
         if ($close -lt 0) { throw "$SettingsPath does not look like JSON; nothing was changed." }
         $head = $text.Substring(0, $close).TrimEnd()
         if (-not ($head.EndsWith('{') -or $head.EndsWith(','))) { $head += ',' }
-        $text = $head + "`n    `"schemes`": [`n" + ($objects -join ",`n") + "`n    ]`n" + $text.Substring($close)
+        $body = ($schemeBlock -split "`n" | ForEach-Object { "    $_" }) -join "`n"
+        $text = $head + "`n    `"schemes`": [`n" + $body + "`n    ]`n" + $text.Substring($close)
+        $schemesOpen = Find-ArrayOpen $text 'schemes'
     }
 
-    # validate before touching the file
+    # a file that lost its markers keeps duplicates otherwise: sweep stray schemes
+    $spans = Get-ObjectSpans $text $schemesOpen
+    if ($spans.Count -gt 1) { [array]::Reverse($spans) }
+    foreach ($span in $spans) {
+        $block = $text.Substring($span.Start, $span.End - $span.Start)
+        $before = $text.Substring(0, $span.Start)
+        $insideBlock = $before.LastIndexOf($begin) -gt $before.LastIndexOf($end)
+        if ($block -match '"name"\s*:\s*"Yorumi ' -and -not $insideBlock) {
+            $text = $text.Substring(0, $span.Start) + $text.Substring($span.End).TrimStart("`r", "`n", ' ', ',')
+        }
+    }
+
+    $region = Find-BlockRegion $text $begin $end
+    if ($region -and $region.End -lt 0) {
+        throw "yorumi: $SettingsPath has a '$begin' with no '$end'. Nothing was changed; delete that line and run this again."
+    }
+    if ($region) {
+        $text = $text.Substring(0, $region.Start) + $indent + $begin + "`n" +
+            (($schemeBlock -split "`n" | ForEach-Object { "$indent$_" }) -join "`n") + "`n$indent" + $end +
+            $text.Substring($region.End)
+    } else {
+        $schemesOpen = Find-ArrayOpen $text 'schemes'
+        $text = $text.Substring(0, $schemesOpen) + "`n$indent" + $begin + "`n" +
+            (($schemeBlock -split "`n" | ForEach-Object { "$indent$_" }) -join "`n") + "`n$indent" + $end + "`n" +
+            $text.Substring($schemesOpen)
+    }
+
+    # ── activation: a block inside profiles.defaults ──────────────────────
+    $wantActivate = Confirm-NeedsAsk -yes:$Activate -no:$NoActivate
+    if ($null -eq $wantActivate) {
+        $wantActivate = Ask-YesNo "Set '$schemeName' on every Windows Terminal profile (profiles.defaults)?"
+    }
+    if ($wantActivate) {
+        $profilesOpen = Find-ObjectOpen $text 'profiles'
+        if ($profilesOpen -lt 0) {
+            Write-Warning "this settings.json has no 'profiles' object (old array layout?); set the scheme in Settings instead."
+        } else {
+            $defaultsOpen = Find-ObjectOpen $text 'defaults'
+            if ($defaultsOpen -lt 0) {
+                $text = $text.Substring(0, $profilesOpen) + "`n        `"defaults`": {`n        }" + $text.Substring($profilesOpen)
+                $defaultsOpen = Find-ObjectOpen $text 'defaults'
+            }
+            # drop a stray key outside the block, so the file cannot end up with two
+            $head = $text.Substring(0, $defaultsOpen)
+            $tail = $text.Substring($defaultsOpen)
+            $tail = [regex]::Replace($tail, '^\s*"colorScheme"\s*:\s*"[^"]*"\s*,?', '', 1)
+            $text = $head + $tail
+
+            $keyLine = '"colorScheme": "' + $schemeName + '",'
+            $choice = Find-BlockRegion $text $choiceBegin $choiceEnd
+            if ($choice -and $choice.End -lt 0) {
+                throw "yorumi: $SettingsPath has a '$choiceBegin' with no '$choiceEnd'. Nothing was changed."
+            }
+            if ($choice) {
+                $text = $text.Substring(0, $choice.Start) + "        " + $choiceBegin + "`n        " + $keyLine +
+                    "`n        " + $choiceEnd + $text.Substring($choice.End)
+            } else {
+                $defaultsOpen = Find-ObjectOpen $text 'defaults'
+                $text = $text.Substring(0, $defaultsOpen) + "`n        " + $choiceBegin + "`n        " + $keyLine +
+                    "`n        " + $choiceEnd + "`n" + $text.Substring($defaultsOpen)
+            }
+        }
+    }
+
+    # ── validate, then write once ────────────────────────────────────────
     try {
         $parsed = ConvertTo-StrictJson $text | ConvertFrom-Json
         $names = @($parsed.schemes | ForEach-Object { $_.name })
@@ -273,69 +315,37 @@ if ($SettingsPath) {
             $want = 'Yorumi ' + $f.Substring(0, 1).ToUpper() + $f.Substring(1)
             if ($names -notcontains $want) { throw "scheme '$want' did not survive the merge" }
         }
+        if ($wantActivate -and $parsed.profiles.defaults.colorScheme -ne $schemeName) {
+            throw 'profiles.defaults.colorScheme did not stick'
+        }
     } catch {
         throw "the merged settings.json did not validate ($($_.Exception.Message)); $SettingsPath is unchanged."
     }
 
     if ($text -ne $original) {
         $backup = "$SettingsPath.yorumi-backup"
-        Copy-Item -LiteralPath $SettingsPath -Destination $backup -Force
+        if (-not (Test-Path -LiteralPath $backup)) { Copy-Item -LiteralPath $SettingsPath -Destination $backup }
         Write-Text $SettingsPath $text
-        Write-Host "schemes written to $SettingsPath (backup: $backup)"
+        Write-Host "settings.json updated: $SettingsPath (backup: $backup)"
     } else {
-        Write-Host "schemes already present in $SettingsPath"
+        Write-Host "settings.json already current: $SettingsPath"
     }
+    $activated = [bool]$wantActivate
 
-    # ── activation ────────────────────────────────────────────────────────
-    $wantActivate = Confirm-NeedsAsk -yes:$Activate -no:$NoActivate
-    if ($null -eq $wantActivate) {
-        $wantActivate = Ask-YesNo "Set '$schemeName' on every Windows Terminal profile (profiles.defaults)?"
-    }
-    if ($wantActivate) {
-        $text = Read-Text $SettingsPath
-        $profilesOpen = Find-ObjectOpen $text 'profiles'
-        if ($profilesOpen -lt 0) {
-            Write-Warning "this settings.json has no 'profiles' object (old array layout?); set the scheme in Settings instead."
-        } else {
-            $defaultsOpen = Find-ObjectOpen $text 'defaults'
-            $entry = '"colorScheme": "' + $schemeName + '",'
-            if ($defaultsOpen -gt $profilesOpen) {
-                $existing = [regex]::Match($text.Substring($defaultsOpen), '^\s*"colorScheme"\s*:\s*"[^"]*"\s*,?')
-                if ($existing.Success -and $existing.Index -eq 0) {
-                    $text = $text.Substring(0, $defaultsOpen) + "`n        " + $entry + ' ' +
-                        $text.Substring($defaultsOpen + $existing.Length)
-                } else {
-                    $text = $text.Substring(0, $defaultsOpen) + "`n        " + $entry + $text.Substring($defaultsOpen)
+    if ($activated) {
+        Write-Host "profiles.defaults now uses '$schemeName'"
+        $listOpen = Find-ArrayOpen $text 'list'
+        if ($listOpen -ge 0) {
+            $pinned = @()
+            foreach ($span in (Get-ObjectSpans $text $listOpen)) {
+                $block = $text.Substring($span.Start, $span.End - $span.Start)
+                if ($block -match '"colorScheme"\s*:') {
+                    $nm = [regex]::Match($block, '"name"\s*:\s*"([^"]+)"')
+                    $pinned += $(if ($nm.Success) { $nm.Groups[1].Value } else { '(unnamed profile)' })
                 }
-            } else {
-                $block = '"defaults": { ' + $entry.TrimEnd(',') + ' },'
-                $text = $text.Substring(0, $profilesOpen) + "`n        " + $block + $text.Substring($profilesOpen)
             }
-            try {
-                $parsed = ConvertTo-StrictJson $text | ConvertFrom-Json
-                if ($parsed.profiles.defaults.colorScheme -ne $schemeName) { throw 'colorScheme did not stick' }
-            } catch {
-                throw "activation did not validate ($($_.Exception.Message)); settings.json left as it was."
-            }
-            Write-Text $SettingsPath $text
-            $activated = $true
-            Write-Host "profiles.defaults now uses '$schemeName'"
-
-            # a profile that pins its own scheme wins over defaults — say so rather
-            # than pretending the whole window changed
-            $listOpen = Find-ArrayOpen $text 'list'
-            if ($listOpen -ge 0) {
-                $pinned = @()
-                foreach ($span in (Get-ObjectSpans $text $listOpen)) {
-                    $block = $text.Substring($span.Start, $span.End - $span.Start)
-                    if ($block -match '"colorScheme"\s*:') {
-                        $nm = [regex]::Match($block, '"name"\s*:\s*"([^"]+)"')
-                        $pinned += $(if ($nm.Success) { $nm.Groups[1].Value } else { '(unnamed profile)' })
-                    }
-                }
-                if ($pinned.Count -gt 0) {
-                    Write-Host "note: these profiles pin their own scheme and keep it: $($pinned -join ', ')"
-                }
+            if ($pinned.Count -gt 0) {
+                Write-Host "note: these profiles keep their own scheme: $($pinned -join ', ')"
             }
         }
     }
@@ -347,11 +357,9 @@ if ($null -eq $wantPowerShell) {
     $wantPowerShell = Ask-YesNo 'Also theme the PowerShell prompt itself (yorumi for PowerShell)?'
 }
 if ($wantPowerShell) {
-    if (-not $PowerShellInstaller) {
-        $sibling = if ($PSScriptRoot) { Join-Path (Split-Path -Path $PSScriptRoot -Parent) 'powershell\install.ps1' }
-        if ($sibling -and (Test-Path -LiteralPath $sibling)) {
-            $PowerShellInstaller = $sibling
-        }
+    if (-not $PowerShellInstaller -and $PSScriptRoot) {
+        $sibling = Join-Path (Split-Path -Path $PSScriptRoot -Parent) 'powershell\install.ps1'
+        if (Test-Path -LiteralPath $sibling) { $PowerShellInstaller = $sibling }
     }
     if ($PowerShellInstaller -and (Test-Path -LiteralPath $PowerShellInstaller)) {
         & $PowerShellInstaller -Flavour $Flavour
@@ -361,11 +369,10 @@ if ($wantPowerShell) {
     }
 }
 
-# ── what is left to do by hand ─────────────────────────────────────────────
 Write-Host ''
 if (-not $SettingsPath) {
     Write-Host 'Next:'
-    Write-Host "  paste the scheme objects into the `"schemes`" array of settings.json, then set"
+    Write-Host "  paste the scheme objects from this folder into the `"schemes`" array, then set"
     Write-Host "  `"colorScheme`": `"$schemeName`" on a profile."
 } elseif (-not $activated) {
     Write-Host 'Next:'

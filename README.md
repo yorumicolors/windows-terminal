@@ -35,13 +35,22 @@ Or from a checkout: `./install.ps1 -Flavour abyss`.
 
 The installer finds `settings.json` (Store, Preview, Canary and unpackaged locations), then:
 
-1. **Merges the seven schemes** into the `"schemes"` array. It edits the file textually —
-   your comments, trailing commas, key order and every other object survive byte for byte.
-   A scheme it shipped before is replaced in place rather than duplicated, and the merged file
-   is parsed back before anything is written. A backup lands next to it as
-   `settings.json.yorumi-backup`.
-2. **Offers to activate one**, by setting `"colorScheme"` in `profiles.defaults` — one key, all
-   profiles. Declining leaves your current colours alone.
+1. **Writes a marked block** of the seven schemes into the `"schemes"` array. The block is
+   rewritten whole on every run, so a re-install updates it instead of duplicating it, and
+   deleting the block is the uninstall. Everything outside it — your comments, trailing commas,
+   key order, other schemes — survives byte for byte. The file is parsed back before anything is
+   written, and a backup lands next to it as `settings.json.yorumi-backup`.
+2. **Offers to activate one**, with a second block in `profiles.defaults`:
+
+   ```jsonc
+   "defaults": {
+       // >>> yorumi colorScheme >>>
+       "colorScheme": "Yorumi Abyss",
+       // <<< yorumi colorScheme <<<
+   }
+   ```
+
+   One block, all profiles. Declining leaves your current colours alone.
 3. **Offers to theme PowerShell itself**, by running the
    [yorumi for PowerShell](https://github.com/yorumicolors/powershell) installer with the same
    flavour, so the prompt, syntax highlighting and directory colours match the window.
