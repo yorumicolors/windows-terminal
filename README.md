@@ -15,11 +15,9 @@ Seven flavours of the [yorumi](https://github.com/yorumicolors) palette for wind
 
 ## Install
 
-```sh
-./install.sh
-```
+No installer: this format has no file the app can import.
 
-Activate:
+Install:
 
 ```
 paste the object into the "schemes" array of settings.json, then set "colorScheme"
