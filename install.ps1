@@ -45,7 +45,7 @@
 #>
 [CmdletBinding()]
 param(
-    [string] $Flavour = 'ether',
+    [string] $Flavour = '',
     [string] $SettingsPath,
     [switch] $Activate,
     [switch] $NoActivate,
@@ -65,11 +65,6 @@ try {
 
 $rawBase = 'https://raw.githubusercontent.com/yorumicolors/windows-terminal/main'
 $flavours = 'ether', 'abyss', 'bifrost', 'kraken', 'kabocha', 'cosmic', 'ryujin'
-if ($flavours -notcontains $Flavour) {
-    throw "unknown flavour '$Flavour'. One of: $($flavours -join ', ')"
-}
-$schemeName = 'Yorumi ' + $Flavour.Substring(0, 1).ToUpper() + $Flavour.Substring(1)
-
 $interactive = -not $NonInteractive -and -not [Console]::IsInputRedirected
 # two independent regions: the schemes, and the scheme choice
 $begin = '// >>> yorumi >>>'
@@ -185,6 +180,40 @@ function Ask-YesNo([string] $question) {
     return ($answer -match '^(y|yes)$')
 }
 
+# ── which scheme gets activated ────────────────────────────────────────────
+# The flavour chooses what is activated, not what is installed: all seven
+# schemes always go into settings.json.
+$wantActivate = Confirm-NeedsAsk -yes:$Activate -no:$NoActivate
+if ($null -eq $wantActivate) {
+    $wantActivate = Ask-YesNo 'Set a yorumi scheme on every Windows Terminal profile (profiles.defaults)?'
+}
+
+if ($wantActivate -and -not $Flavour) {
+    if (-not $interactive) {
+        throw "no flavour given. pass -Flavour <name>: $($flavours -join ', ')"
+    }
+    for ($i = 0; $i -lt $flavours.Count; $i++) {
+        Write-Host ("  {0}) {1}" -f ($i + 1), $flavours[$i])
+    }
+    while (-not $Flavour) {
+        $answer = Read-Host "flavour (1-$($flavours.Count) or a name)"
+        if (-not $answer) { continue }
+        if ($answer -match '^\d+$' -and [int]$answer -ge 1 -and [int]$answer -le $flavours.Count) {
+            $Flavour = $flavours[[int]$answer - 1]
+        } elseif ($flavours -contains $answer) {
+            $Flavour = $answer
+        } else {
+            Write-Warning "not a flavour: $answer"
+        }
+    }
+}
+if ($Flavour -and $flavours -notcontains $Flavour) {
+    throw "unknown flavour '$Flavour'. One of: $($flavours -join ', ')"
+}
+# reached only when nothing is activated; keeps the summary text well-formed
+if (-not $Flavour) { $Flavour = $flavours[0] }
+$schemeName = 'Yorumi ' + $Flavour.Substring(0, 1).ToUpper() + $Flavour.Substring(1)
+
 # ── find settings.json ─────────────────────────────────────────────────────
 $isWindowsHost = ($env:OS -eq 'Windows_NT')
 if (-not $isWindowsHost -and -not $SettingsPath) {
@@ -271,10 +300,6 @@ if ($SettingsPath) {
     }
 
     # ── activation: a block inside profiles.defaults ──────────────────────
-    $wantActivate = Confirm-NeedsAsk -yes:$Activate -no:$NoActivate
-    if ($null -eq $wantActivate) {
-        $wantActivate = Ask-YesNo "Set '$schemeName' on every Windows Terminal profile (profiles.defaults)?"
-    }
     if ($wantActivate) {
         $profilesOpen = Find-ObjectOpen $text 'profiles'
         if ($profilesOpen -lt 0) {
@@ -376,8 +401,8 @@ if (-not $SettingsPath) {
     Write-Host "  `"colorScheme`": `"$schemeName`" on a profile."
 } elseif (-not $activated) {
     Write-Host 'Next:'
-    Write-Host "  Windows Terminal → Settings → your profile → Appearance → Colour scheme → $schemeName"
-    Write-Host '  (or re-run with -Activate to set it for every profile)'
+    Write-Host '  Windows Terminal → Settings → your profile → Appearance → Colour scheme → pick a Yorumi scheme'
+    Write-Host '  (or re-run with -Activate -Flavour <name> to set it for every profile)'
 } else {
     Write-Host "Next: reopen Windows Terminal tabs to see $schemeName."
 }
