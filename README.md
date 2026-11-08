@@ -1,34 +1,32 @@
-# Yorumi themes for Windows Terminal
+# Yorumi for windows-terminal
 
-| ![image](images/yorumi-abyss.png) | ![image](images/yorumi-mist.png) |
-| --- | --- |
-| Yorumi Abyss | Yorumi Mist |
-| ![image](images/yorumi-shade.png) | ![image](images/yorumi-kraken.png) |
-| Yorumi Shade | Yorumi Kraken |
+Seven flavours of the [yorumi](https://github.com/yorumicolors) palette for windows-terminal, generated from
+`primitives.json` + `ansi-themes.json`.
 
+| file | mode |
+|---|---|
+| yorumi-ether.json | dark |
+| yorumi-abyss.json | dark |
+| yorumi-bifrost.json | light |
+| yorumi-kraken.json | dark |
+| yorumi-kabocha.json | dark |
+| yorumi-cosmic.json | dark |
+| yorumi-ryujin.json | dark |
 
-## Installation
+## Install
 
-### Individual theme usage
-In Windows terminal, open the Settings panel (Ctrl + ,), and select **Open JSON file** at the bottom left corner (Ctrl + Shift + ,). Then, choose your flavour (abyss, mist, shade, kraken) and copy the contents of the corresponding `yorumi-[flavour].json` into the `"schemes"` section of the JSON file. Similarly, copy the contents of the corresponding `yorumi-[flavour]-theme.json` into the `"themes"` section.
-
-### Collective themes
-
-To access all of the themes (and colorschemes) to try them all out, copy the single `yorumi.json` file with `schemas` and `themes` sections.
-
-```jsonc
-{
-  "schemes": [
-    // yorumi-[Options: abyss | mist | shade | kraken].json
-    // or all of the theme options with copying yorumi.json
-  ],
-  "themes": [
-    // yorumi-[Options: abyss | mist | shade | kraken ]-theme.json
-    // or all of the appearance options with copying yorumi.json
-  ]
-}
+```sh
+./install.sh
 ```
 
-### Applying the theme
+Activate:
 
-After updating the `settings.json` file, save and exit. In the Settings panel, under **Profiles**, select the profile you want to apply the theme to (or choose **Defaults** to apply it to all profiles). Then, go to **Appearance** and select your desired Yorumi flavour from the **Color scheme** dropdown menu. Click **Save**, and enjoy your new colorscheme.
+```
+paste the object into the "schemes" array of settings.json, then set "colorScheme"
+```
+
+## Palette
+
+Every value is a token from the shared palette; nothing is hand-tuned per emulator.
+The contract (background/surface/text/dim slots per mode, selection ink) is
+enforced by `dev/generators/build-terminals.mjs` before any file is written — see `dev/theming/THEMING.md`.

@@ -1,0 +1,23 @@
+{
+    "name": "Yorumi Ether",
+    "cursorColor": "#ebedf1",
+    "selectionBackground": "#bdbfcb",
+    "background": "#02040e",
+    "foreground": "#ebedf1",
+    "black": "#02040e",
+    "red": "#de8280",
+    "green": "#a1b38c",
+    "yellow": "#cdb68c",
+    "blue": "#7f8cbf",
+    "purple": "#c9809f",
+    "cyan": "#96c3b8",
+    "white": "#bdbfcb",
+    "brightBlack": "#4d4f58",
+    "brightRed": "#ea7262",
+    "brightGreen": "#a9d07c",
+    "brightYellow": "#e4d278",
+    "brightBlue": "#798ddc",
+    "brightPurple": "#db8bae",
+    "brightCyan": "#85e0cb",
+    "brightWhite": "#ebedf1"
+}

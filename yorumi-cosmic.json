@@ -1,0 +1,23 @@
+{
+    "name": "Yorumi Cosmic",
+    "cursorColor": "#ffffff",
+    "selectionBackground": "#df7caa",
+    "background": "#150718",
+    "foreground": "#ffffff",
+    "black": "#150718",
+    "red": "#ea7262",
+    "green": "#a9d07c",
+    "yellow": "#e4d278",
+    "blue": "#798ddc",
+    "purple": "#db8bae",
+    "cyan": "#85e0cb",
+    "white": "#bdbfcb",
+    "brightBlack": "#8d3f5a",
+    "brightRed": "#e2aeac",
+    "brightGreen": "#d0dfbe",
+    "brightYellow": "#e2d8bb",
+    "brightBlue": "#afb9df",
+    "brightPurple": "#deb9d0",
+    "brightCyan": "#c6dfec",
+    "brightWhite": "#ffffff"
+}

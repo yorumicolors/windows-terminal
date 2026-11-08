@@ -1,0 +1,23 @@
+{
+    "name": "Yorumi Ryujin",
+    "cursorColor": "#afb9df",
+    "selectionBackground": "#76b0ff",
+    "background": "#0b0b19",
+    "foreground": "#afb9df",
+    "black": "#0b0b19",
+    "red": "#de8280",
+    "green": "#a1b38c",
+    "yellow": "#cdb68c",
+    "blue": "#7f8cbf",
+    "purple": "#c9809f",
+    "cyan": "#96c3b8",
+    "white": "#bdbfcb",
+    "brightBlack": "#42608a",
+    "brightRed": "#e2aeac",
+    "brightGreen": "#5be3b4",
+    "brightYellow": "#ffb86b",
+    "brightBlue": "#76b0ff",
+    "brightPurple": "#df8eff",
+    "brightCyan": "#c6dfec",
+    "brightWhite": "#afb9df"
+}
