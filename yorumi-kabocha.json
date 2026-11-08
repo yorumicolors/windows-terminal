@@ -1,0 +1,23 @@
+{
+    "name": "Yorumi Kabocha",
+    "cursorColor": "#f5c5b0",
+    "selectionBackground": "#ffb86b",
+    "background": "#150b03",
+    "foreground": "#f5c5b0",
+    "black": "#150b03",
+    "red": "#c65e53",
+    "green": "#80aa6e",
+    "yellow": "#ba9a5e",
+    "blue": "#597bc0",
+    "purple": "#b4647f",
+    "cyan": "#5caeac",
+    "white": "#bdbfcb",
+    "brightBlack": "#5d3718",
+    "brightRed": "#e2aeac",
+    "brightGreen": "#5be3b4",
+    "brightYellow": "#ffb86b",
+    "brightBlue": "#76b0ff",
+    "brightPurple": "#df8eff",
+    "brightCyan": "#c6dfec",
+    "brightWhite": "#f5c5b0"
+}

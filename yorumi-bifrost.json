@@ -1,0 +1,23 @@
+{
+    "name": "Yorumi Bifrost",
+    "cursorColor": "#191b25",
+    "selectionBackground": "#afb9df",
+    "background": "#ebedf1",
+    "foreground": "#191b25",
+    "black": "#191b25",
+    "red": "#4e0e0e",
+    "green": "#213828",
+    "yellow": "#4e3e0a",
+    "blue": "#0d2c4e",
+    "purple": "#4c1036",
+    "cyan": "#054951",
+    "white": "#a8aab5",
+    "brightBlack": "#4d4f58",
+    "brightRed": "#913b3b",
+    "brightGreen": "#667c4b",
+    "brightYellow": "#9d672f",
+    "brightBlue": "#42608a",
+    "brightPurple": "#8d3f5a",
+    "brightCyan": "#49837e",
+    "brightWhite": "#ebedf1"
+}
