@@ -34,7 +34,7 @@ Yorumi keeps visual noise low with mellow, low-contrast UI component backgrounds
 Open Windows Terminal &rarr; **Settings** (`Ctrl + ,`) &rarr; **Open JSON file** (bottom left), then pick one:
 
 > [!WARNING]  
-> This section does not cover adding yorumi-<flavour>-theme.json, since it isn't supported for now
+> This section does not cover adding `yorumi-<flavour>-theme.json`, since it isn't supported for now
 
 | Option       | Instructions                                                                                  |
 | ------------ | --------------------------------------------------------------------------------------------- |
