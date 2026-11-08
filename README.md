@@ -11,7 +11,7 @@
 
 Yorumi keeps visual noise low with mellow, low-contrast chrome while text and syntax stay
 sharp: body text measures 9.6-19.5:1 against its background, and the lowest-contrast palette
-token is 5.6:1. Every value is generated from the shared palette — nothing is hand-tuned.
+token is 5.6:1. Every value comes from the shared palette.
 
 ## Available Flavours
 
@@ -31,19 +31,24 @@ token is 5.6:1. Every value is generated from the shared palette — nothing is 
 irm https://raw.githubusercontent.com/yorumicolors/windows-terminal/main/install.ps1 | iex
 ```
 
+It asks which scheme to activate. To skip the question — and to change flavour later without
+answering it — pass arguments through `scriptblock`:
+
 ```powershell
-./install.ps1             # asks which scheme to activate
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/yorumicolors/windows-terminal/main/install.ps1))) -Flavour kraken -Activate
 ```
 
 Two marked blocks in `settings.json`: all seven schemes in `"schemes"`, and the chosen one in
 `profiles.defaults`. Nothing outside them is edited, the file is parsed back before writing, and
 `settings.json.yorumi-backup` keeps the previous copy.
 
-## Changing it
+## Changing flavour
 
 ```powershell
-./install.ps1 -Flavour kraken -Activate
+irm https://raw.githubusercontent.com/yorumicolors/windows-terminal/main/install.ps1 | iex
 ```
+
+Re-running the one-liner asks again; the `scriptblock` form above takes `-Flavour <name> -Activate`.
 
 ## Manual installation
 
@@ -62,7 +67,7 @@ scheme in **Settings → profile → Appearance → Colour scheme**.
 ## For AI Agents
 
 1. **Install**: `irm https://raw.githubusercontent.com/yorumicolors/windows-terminal/main/install.ps1 | iex`,
-   or `./install.ps1 -Flavour <name>` in a checkout.
+   or the `scriptblock` form with `-Flavour <name>`.
 2. **Never rewrite `settings.json` wholesale.** Merge into `"schemes"`, keep the file textual,
    validate by parsing it back, and leave a `.yorumi-backup`.
 3. **Verify**: `"schemes"` contains `Yorumi Ether` … `Yorumi Ryujin`; the file still parses as
