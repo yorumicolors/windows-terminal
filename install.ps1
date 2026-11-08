@@ -319,7 +319,24 @@ if ($SettingsPath) {
             }
             Write-Text $SettingsPath $text
             $activated = $true
-            Write-Host "all profiles use '$schemeName'"
+            Write-Host "profiles.defaults now uses '$schemeName'"
+
+            # a profile that pins its own scheme wins over defaults — say so rather
+            # than pretending the whole window changed
+            $listOpen = Find-ArrayOpen $text 'list'
+            if ($listOpen -ge 0) {
+                $pinned = @()
+                foreach ($span in (Get-ObjectSpans $text $listOpen)) {
+                    $block = $text.Substring($span.Start, $span.End - $span.Start)
+                    if ($block -match '"colorScheme"\s*:') {
+                        $nm = [regex]::Match($block, '"name"\s*:\s*"([^"]+)"')
+                        $pinned += $(if ($nm.Success) { $nm.Groups[1].Value } else { '(unnamed profile)' })
+                    }
+                }
+                if ($pinned.Count -gt 0) {
+                    Write-Host "note: these profiles pin their own scheme and keep it: $($pinned -join ', ')"
+                }
+            }
         }
     }
 }
