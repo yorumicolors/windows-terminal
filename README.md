@@ -31,41 +31,19 @@ token is 5.6:1. Every value is generated from the shared palette — nothing is 
 irm https://raw.githubusercontent.com/yorumicolors/windows-terminal/main/install.ps1 | iex
 ```
 
-Or from a checkout: `./install.ps1 -Flavour abyss`.
+```powershell
+./install.ps1             # asks which scheme to activate
+```
 
-The installer finds `settings.json` (Store, Preview, Canary and unpackaged locations), then:
+Two marked blocks in `settings.json`: all seven schemes in `"schemes"`, and the chosen one in
+`profiles.defaults`. Nothing outside them is edited, the file is parsed back before writing, and
+`settings.json.yorumi-backup` keeps the previous copy.
 
-1. **Writes a marked block** of the seven schemes into the `"schemes"` array. The block is
-   rewritten whole on every run, so a re-install updates it instead of duplicating it, and
-   deleting the block is the uninstall. Everything outside it — your comments, trailing commas,
-   key order, other schemes — survives byte for byte. The file is parsed back before anything is
-   written, and a backup lands next to it as `settings.json.yorumi-backup`.
-2. **Offers to activate one**, with a second block in `profiles.defaults`:
+## Changing it
 
-   ```jsonc
-   "defaults": {
-       // >>> yorumi colorScheme >>>
-       "colorScheme": "Yorumi Abyss",
-       // <<< yorumi colorScheme <<<
-   }
-   ```
-
-   One block, all profiles. Declining leaves your current colours alone.
-3. **Offers to theme PowerShell itself**, by running the
-   [yorumi for PowerShell](https://github.com/yorumicolors/powershell) installer with the same
-   flavour, so the prompt, syntax highlighting and directory colours match the window.
-
-Nothing is applied without an answer: when there is nobody to ask (`-NonInteractive`, or input
-piped from a file) the installer does only the file work and prints what is left to do.
-
-| flag | effect |
-|---|---|
-| `-Flavour <name>` | which scheme to activate and hand to PowerShell. Default `ether` |
-| `-SettingsPath <file>` | edit a specific `settings.json` instead of the discovered one |
-| `-Activate` / `-NoActivate` | set `profiles.defaults.colorScheme` without asking / never |
-| `-InstallPowerShell` / `-NoInstallPowerShell` | same, for the PowerShell theme |
-| `-PowerShellInstaller <file>` | use a local `powershell/install.ps1` instead of downloading |
-| `-NonInteractive` | ask nothing |
+```powershell
+./install.ps1 -Flavour kraken -Activate
+```
 
 ## Manual installation
 
