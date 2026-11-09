@@ -39,8 +39,13 @@ answering it — pass arguments through `scriptblock`:
 ```
 
 Two marked blocks in `settings.json`: all seven schemes in `"schemes"`, and the chosen one in
-`profiles.defaults`. Nothing outside them is edited, the file is parsed back before writing, and
-`settings.json.yorumi-backup` keeps the previous copy.
+`profiles.defaults`. Nothing outside them is edited — a scheme of your own that merely starts with
+"Yorumi" stays — the file is parsed back before writing, and `settings.json.yorumi-backup` keeps
+the previous copy.
+
+`-SettingsPath <file>` targets a specific `settings.json`, and naming one is also what lets the
+script run off Windows (WSL, CI). `-NoActivate` installs the schemes without writing a scheme
+choice; `-NonInteractive` asks nothing at all.
 
 ## Changing flavour
 

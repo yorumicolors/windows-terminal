@@ -14,11 +14,12 @@
         ]
 
     The block is rewritten whole, never spliced line by line, and deleting it is
-    the uninstall. Activation is a second block inside "profiles.defaults":
+    the uninstall. Activation is a second, separately marked block inside
+    "profiles.defaults":
 
-        // >>> yorumi >>>
+        // >>> yorumi colorScheme >>>
         "colorScheme": "Yorumi Ether",
-        // <<< yorumi <<<
+        // <<< yorumi colorScheme <<<
 
     Both are asked for. Nothing is applied when there is nobody to answer
     (-NonInteractive, or piped input).
@@ -26,6 +27,7 @@
     Scheme to activate and to hand to the PowerShell installer. Default: ether.
 .PARAMETER SettingsPath
     settings.json to edit. Default: the first Windows Terminal settings.json found.
+    Naming one is also what lets the script run off Windows (WSL, CI).
 .PARAMETER Activate
     Write the profiles.defaults block without asking.
 .PARAMETER NoActivate
@@ -66,6 +68,8 @@ try {
 $rawBase = 'https://raw.githubusercontent.com/yorumicolors/windows-terminal/main'
 $flavours = 'ether', 'abyss', 'bifrost', 'kraken', 'kabocha', 'cosmic', 'ryujin'
 $interactive = -not $NonInteractive -and -not [Console]::IsInputRedirected
+if ($Activate -and $NoActivate) { throw '-Activate and -NoActivate are mutually exclusive.' }
+if ($InstallPowerShell -and $NoInstallPowerShell) { throw '-InstallPowerShell and -NoInstallPowerShell are mutually exclusive.' }
 # two independent regions: the schemes, and the scheme choice
 $begin = '// >>> yorumi >>>'
 $end = '// <<< yorumi <<<'
@@ -76,8 +80,11 @@ $choiceEnd = '// <<< yorumi colorScheme <<<'
 function Read-Text([string] $path) { return [IO.File]::ReadAllText($path) }
 
 function Write-Text([string] $path, [string] $text) {
-    # no BOM: settings.json is JSONC, and a BOM upsets other parsers
-    [IO.File]::WriteAllText($path, $text, (New-Object System.Text.UTF8Encoding($false)))
+    # no BOM: settings.json is JSONC, and a BOM upsets other parsers.
+    # write beside the file and move, so a crash cannot leave it half-written
+    $tmp = "$path.yorumi-tmp.$PID"
+    [IO.File]::WriteAllText($tmp, $text, (New-Object System.Text.UTF8Encoding($false)))
+    Move-Item -LiteralPath $tmp -Destination $path -Force
 }
 
 # index just past the "[" of "key": [  (or -1)
@@ -134,6 +141,25 @@ function Find-BlockRegion([string] $text, [string] $startMarker, [string] $endMa
     $e = [regex]::Match($rest, '(?m)^[ \t]*' + [regex]::Escape($endMarker) + '[^\r\n]*$')
     if (-not $e.Success) { return @{ Start = $m.Index; End = -1 } }
     return @{ Start = $m.Index; End = $m.Index + $m.Length + $e.Index + $e.Length }
+}
+
+# every complete marker pair, in file order
+function Get-BlockRegions([string] $text, [string] $startMarker, [string] $endMarker) {
+    $pattern = '(?ms)^[ \t]*' + [regex]::Escape($startMarker) + '[^\r\n]*$.*?^[ \t]*' + [regex]::Escape($endMarker) + '[^\r\n]*$'
+    $regions = @()
+    foreach ($m in [regex]::Matches($text, $pattern)) {
+        $regions += @{ Start = $m.Index; End = $m.Index + $m.Length }
+    }
+    return $regions
+}
+
+# keep the pair nearest the top, drop the rest (an interrupted run leaves extras)
+function Remove-ExtraBlocks([string] $text, [string] $startMarker, [string] $endMarker) {
+    $regions = Get-BlockRegions $text $startMarker $endMarker
+    for ($i = $regions.Count - 1; $i -ge 1; $i--) {
+        $text = $text.Substring(0, $regions[$i].Start) + $text.Substring($regions[$i].End)
+    }
+    return $text
 }
 
 # JSONC → JSON the .NET parser accepts: drop comments and trailing commas
@@ -210,9 +236,12 @@ if ($wantActivate -and -not $Flavour) {
 if ($Flavour -and $flavours -notcontains $Flavour) {
     throw "unknown flavour '$Flavour'. One of: $($flavours -join ', ')"
 }
+if ($Flavour) { $Flavour = $Flavour.ToLower() }
 # reached only when nothing is activated; keeps the summary text well-formed
 if (-not $Flavour) { $Flavour = $flavours[0] }
 $schemeName = 'Yorumi ' + $Flavour.Substring(0, 1).ToUpper() + $Flavour.Substring(1)
+# the seven names this script owns; nothing else in "schemes" is touched
+$ourNames = @($flavours | ForEach-Object { 'Yorumi ' + $_.Substring(0, 1).ToUpper() + $_.Substring(1) })
 
 # ── find settings.json ─────────────────────────────────────────────────────
 $isWindowsHost = ($env:OS -eq 'Windows_NT')
@@ -272,14 +301,17 @@ if ($SettingsPath) {
         $schemesOpen = Find-ArrayOpen $text 'schemes'
     }
 
-    # a file that lost its markers keeps duplicates otherwise: sweep stray schemes
+    # a file that lost its markers keeps duplicates otherwise: sweep stray
+    # schemes, but only the seven this script owns — a user scheme that merely
+    # starts with "Yorumi" is theirs
     $spans = Get-ObjectSpans $text $schemesOpen
     if ($spans.Count -gt 1) { [array]::Reverse($spans) }
+    $ourNamePattern = '"name"\s*:\s*"(' + (($ourNames | ForEach-Object { [regex]::Escape($_) }) -join '|') + ')"'
     foreach ($span in $spans) {
         $block = $text.Substring($span.Start, $span.End - $span.Start)
         $before = $text.Substring(0, $span.Start)
         $insideBlock = $before.LastIndexOf($begin) -gt $before.LastIndexOf($end)
-        if ($block -match '"name"\s*:\s*"Yorumi ' -and -not $insideBlock) {
+        if ($block -match $ourNamePattern -and -not $insideBlock) {
             $text = $text.Substring(0, $span.Start) + $text.Substring($span.End).TrimStart("`r", "`n", ' ', ',')
         }
     }
@@ -298,6 +330,7 @@ if ($SettingsPath) {
             (($schemeBlock -split "`n" | ForEach-Object { "$indent$_" }) -join "`n") + "`n$indent" + $end + "`n" +
             $text.Substring($schemesOpen)
     }
+    $text = Remove-ExtraBlocks $text $begin $end
 
     # ── activation: a block inside profiles.defaults ──────────────────────
     if ($wantActivate) {
@@ -307,7 +340,12 @@ if ($SettingsPath) {
         } else {
             $defaultsOpen = Find-ObjectOpen $text 'defaults'
             if ($defaultsOpen -lt 0) {
-                $text = $text.Substring(0, $profilesOpen) + "`n        `"defaults`": {`n        }" + $text.Substring($profilesOpen)
+                $rest = $text.Substring($profilesOpen)
+                $insert = "`n        `"defaults`": {`n        }"
+                # "profiles" keeps its members after our insert, so the object
+                # we add needs a trailing comma — unless profiles was empty
+                if ($rest.TrimStart() -notlike '}*') { $insert += ',' }
+                $text = $text.Substring(0, $profilesOpen) + $insert + $rest
                 $defaultsOpen = Find-ObjectOpen $text 'defaults'
             }
             # drop a stray key outside the block, so the file cannot end up with two
@@ -329,8 +367,12 @@ if ($SettingsPath) {
                 $text = $text.Substring(0, $defaultsOpen) + "`n        " + $choiceBegin + "`n        " + $keyLine +
                     "`n        " + $choiceEnd + "`n" + $text.Substring($defaultsOpen)
             }
+            $text = Remove-ExtraBlocks $text $choiceBegin $choiceEnd
         }
     }
+
+    # keep the file's own line endings: everything inserted above used "`n"
+    if ($original.Contains("`r`n")) { $text = [regex]::Replace($text, "`r?`n", "`r`n") }
 
     # ── validate, then write once ────────────────────────────────────────
     try {
