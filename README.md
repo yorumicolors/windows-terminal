@@ -31,15 +31,23 @@ token is 5.6:1. Every value comes from the shared palette.
 irm https://raw.githubusercontent.com/yorumicolors/windows-terminal/main/install.ps1 | iex
 ```
 
-It asks which scheme to activate. To skip the question — and to change flavour later without
-answering it — pass arguments through `scriptblock`:
+It asks two questions: whether to set a yorumi scheme as the `profiles.defaults` colour scheme, and
+whether to also theme the PowerShell prompt. `profiles.defaults` is the default a profile inherits;
+a profile with its own `colorScheme` keeps it. A flavour is only needed when either answer is yes — a
+plain install writes all seven schemes and asks for nothing.
+
+To answer ahead of time, pass arguments through `scriptblock`:
 
 ```powershell
 & ([scriptblock]::Create((irm https://raw.githubusercontent.com/yorumicolors/windows-terminal/main/install.ps1))) -Flavour kraken -Activate
 ```
 
-Two marked blocks in `settings.json`: all seven schemes in `"schemes"`, and the chosen one in
-`profiles.defaults`. Nothing outside them is edited — a scheme of your own that merely starts with
+`-Activate` and `-NoActivate` answer the first question; `-InstallPowerShell` and
+`-NoInstallPowerShell` answer the second.
+
+Two marked blocks in `settings.json`: all seven schemes in `"schemes"`, and the chosen one as
+`profiles.defaults.colorScheme` — the default for profiles without a choice of their own. Nothing
+outside them is edited — a scheme of your own that merely starts with
 "Yorumi" stays — the file is parsed back before writing, and `settings.json.yorumi-backup` keeps
 the previous copy.
 
